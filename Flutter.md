@@ -67,6 +67,70 @@ jobs:
 
 ### Flutter Packages
 
+### Flutter Packages
+
+When setting up CI for a Flutter package, the focus is typically on running unit and widget tests to ensure the package behaves as expected. This section outlines how to set up these tests for Flutter packages.
+
+#### Setup for Unit and Widget Tests
+
+Unit and widget tests ensure the correctness of your package’s logic and UI, respectively. To run these tests within GitHub Actions, you'll need to add the necessary steps in your workflow.
+
+1. **Unit Tests:**
+   Unit tests validate the functionality of specific methods or classes in isolation. In Flutter, unit tests are written using `flutter test` and typically reside in the `test/` folder.
+
+2. **Widget Tests:**
+   Widget tests ensure that the UI behaves as expected under certain conditions. These tests are also executed using `flutter test`.
+
+#### Writing Unit and Widget Tests
+
+For your workflow to succeed, you need to have unit and widget tests in place. Here’s an example of how to write a simple unit and widget test in Flutter:
+
+#### Example Unit Test (`test/unit_test.dart`):
+
+```dart
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('Simple math test', () {
+    int result = 2 + 2;
+    expect(result, 4);
+  });
+}
+```
+
+#### Example Widget Test (`test/widget_test.dart`):
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(title: Text('Counter App')),
+          body: Center(child: Text('0', key: Key('counter'))),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {},
+            child: Icon(Icons.add),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('0'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+
+    expect(find.text('1'), findsOneWidget);
+  });
+}
+```
+
+In order to run these tests in CI, we can use the same workflow definition from above.
+
 ### Flutter Web Applications
 
 ### Flutter Android and iOS Applications
@@ -77,16 +141,16 @@ As a repository within the Software Engineering Project GitHub Enterprise organi
 
 1. **Caching Dependencies and Files:** Use caching to speed up workflow execution by reusing dependencies and the Flutter installation itself:
 
-```yaml
-- name: Setup and Install Flutter
-  uses: subosito/flutter-action@v2
-  with:
-    channel: "stable"
-    cache: true
-```
+   ```yaml
+   - name: Setup and Install Flutter
+     uses: subosito/flutter-action@v2
+     with:
+       channel: "stable"
+       cache: true
+   ```
 
-> [!NOTE]
-> Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
+   > [!NOTE]
+   > Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
 
 2. **Parallel Jobs:** By defining separate `jobs` under the jobs section, they can be executed in parallel, which speeds up the CI process. Here's an example of splitting build and test jobs:
 
