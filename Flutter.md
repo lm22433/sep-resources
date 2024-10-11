@@ -52,7 +52,8 @@ jobs:
 
 This YAML file defines a simple GitHub Actions workflow for Continuous Integration (CI) in a Flutter project. The workflow is triggered when a **pull request** is opened or updated on the `main` or `dev` branches of the repository. It defines a single job that will run on an `ubuntu-linux` GitHub runner instance. This jobs has multiple steps that will checkout the repository, install Flutter, install your project's dependecies and then run Flutter's test framework. These are done sequentially.
 
-> **NOTE:** In many cases, repositories may be monolithic, meaning they contain multiple projects or services (e.g., backend, frontend, mobile apps) in different directories. If your Flutter project is not located in the root directory of the repository, you will need to specify the working directory in the relevant steps. This can be done by specifying the `working-directory` option within the job scope. For example:
+> [!WARNING]
+> In many cases, repositories may be monolithic, meaning they contain multiple projects or services (e.g., backend, frontend, mobile apps) in different directories. If your Flutter project is not located in the root directory of the repository, you will need to specify the working directory in the relevant steps. This can be done by specifying the `working-directory` option within the job scope. For example:
 
 ```yaml
 jobs:
