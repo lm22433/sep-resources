@@ -85,7 +85,8 @@ As a repository within the Software Engineering Project GitHub Enterprise organi
     cache: true
 ```
 
-> **Note:** Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
+> [!NOTE]
+> Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
 
 2. **Parallel Jobs:** By defining separate `jobs` under the jobs section, they can be executed in parallel, which speeds up the CI process. Here's an example of splitting build and test jobs:
 
