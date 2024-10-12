@@ -6,13 +6,15 @@
 - [Continuous Integration](#continuous-integration)
   - [Prerequisites](#prerequisites)
   - [Getting Started](#getting-started)
+  - [Linting](#linting)
   - [Flutter Packages](#flutter-packages)
   - [Flutter Web Applications](#flutter-web-applications)
   - [Flutter Android and iOS Applications](#flutter-android-and-ios-applications)
   - [Tips and Tricks](#tips-and-tricks)
+  - [Examples](#examples)
 - [Continuous Deployment](#continuous-deployment)
 
-### Introduction
+## Introduction
 
 Continuous Integration and Continuous Deployment (CI/CD) automate the processes of testing, building, and deploying applications. GitHub Actions allows developers to set up CI/CD pipelines directly in GitHub repositories, making it an efficient and accessible development tool. In this guide, we will set up a CI/CD pipeline for various different types of Flutter projects.
 
@@ -65,7 +67,26 @@ jobs:
     steps: ...
 ```
 
-### Flutter Packages
+### Linting
+
+Linting is the process of analyzing your code for potential errors, style issues, and formatting inconsistencies. Both Flutter and Dart provide CLI commands for running static code analysis, making it easy to integrate linting into your Continuous Integration (CI) workflows. Flutter extends Dart analysis with additional checks specifically for Flutter code, such as detecting incorrect widget usage and performance issues.
+
+#### Configuring Lint Rules
+
+You can configure linting rules in an `analysis_options.yaml` file. This file should be in the project's root directory. (Along with `pupbspec.yaml`) Within this file, all linting rules can be configured.
+
+Here’s an example of an `analysis_options.yaml` file:
+
+```yaml
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - avoid_print
+```
+
+> [!NOTE]
+> For more information linter rules, you can view the [`flutter_lints` documentation](https://docs.flutter.dev/release/breaking-changes/flutter-lints-package).
 
 ### Flutter Packages
 
@@ -133,6 +154,20 @@ In order to run these tests in CI, we can use the same workflow definition from 
 
 ### Flutter Web Applications
 
+When setting up Continuous Integration (CI) for Flutter web applications, you typically use a combination of unit tests, widget tests, and integration tests to ensure a well-functioning and bug-free web application. Below is an explanation of how to incorporate each type of test, followed by a complete workflow example.
+
+#### 1. **Unit and Widget Tests**
+
+Unit and Widget tests can be setup in a very similar way to a Flutter library and so we can use the examples above.
+
+#### 2. **Integration Tests**
+
+Integration tests validate the app as a whole, testing its behavior in a browser to ensure that different components interact correctly. These tests simulate user actions in a real web environment.
+
+To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behavior across multiple screens.
+
+#### 3. **GitHub Actions Workflow**
+
 ### Flutter Android and iOS Applications
 
 ### Tips and Tricks
@@ -149,8 +184,8 @@ As a repository within the Software Engineering Project GitHub Enterprise organi
        cache: true
    ```
 
-   > [!NOTE]
-   > Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
+> [!NOTE]
+> Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
 
 2. **Parallel Jobs:** By defining separate `jobs` under the jobs section, they can be executed in parallel, which speeds up the CI process. Here's an example of splitting build and test jobs:
 
@@ -184,6 +219,10 @@ steps:
     with:
       channel: ${{ env.FLUTTER_CHANNEL }}
 ```
+
+### Examples
+
+If you would like to explore a complete example of a Continuous Integration workflow for a Flutter project, you can take a look at this [GitHub repository](https://github.com/spe-uob/2023-MarineConservationApp). This repository contains multiple workflow definitions for CI that can be used as a guide.
 
 ## Continuous Deployment
 
