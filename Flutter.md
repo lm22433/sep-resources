@@ -22,12 +22,20 @@ Continuous Integration and Continuous Deployment (CI/CD) automate the processes 
 
 ### Prerequisites
 
+Before setting up CI for a Flutter project, ensure the following are in place:
+
+- A [GitHub](https://github.com/) repository containing your Flutter project.
+- Basic understanding of YAML (used for writing GitHub Actions workflows).
+- Flutter SDK installed locally for development and testing.
+- Basic familiarity with the Fluter CLI.
+
 ### Getting Started
 
 1. In your project's root folder, navigate to the `.github/workflows/` directory. If it doesn't exist, create it. To do this you can use your favourite file explorer or use the `mkdir` command.
+
 2. Inside this folder, you will want to create a new YAML file. Some common file names include: `flutter.yml`, `ci.yml`, and `continuous-integration.yml`. This file will define the GitHub workflow that will serve as your CI/CD pipeline. You can take a look at the [GitHub documentation](https://docs.github.com/en/actions/writing-workflows) on workflows for more information.
 
-Now that we have successfully create a file in the correct location, we can begin actually defining our workflow. Here is a very basic example to get stated:
+3. Now that we have successfully create a file in the correct location, we can begin actually defining our workflow. Here is a very basic example to get stated:
 
 ```yaml
 name: Continuous Integration - Flutter
@@ -210,9 +218,9 @@ Future<void> main() => integrationDriver();
 5. In order to run the integration test's locally, you can use the following command: `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome`
 
 > [!NOTE]
-> You will need to have chrome installed in order to run this test.
+> You will need to have Chrome installed in order to run this test.
 
-6. In order to add this to your CI pipeline, the integration tests will need to be run as headless tests. To do this, you will need to install chromedriver and ensure it is running the background. This can be done with the following workflow step
+6. In order to add this to your CI pipeline, the integration tests will need to be run as headless tests. To do this, you will need to install Chromedriver and ensure it is running in the background. The `ubuntu-latest` GitHub Runner has Chromedriver preinstalled, therefore it's as simple as starting Chromedriver in the background:
 
 ```yaml
 steps:
@@ -319,7 +327,430 @@ steps:
 
 ### Examples
 
-If you would like to explore a complete example of a Continuous Integration workflow for a Flutter project, you can take a look at this [GitHub repository](https://github.com/spe-uob/2023-MarineConservationApp). This repository contains multiple workflow definitions for CI that can be used as a guide.
+Here are some examples from 2023-MarineConservationApp's project last year. They had a Flutter Package, Flutter Web App, and Android and iOS apps so they had quite a complex pipeline.
+
+#### Example 1
+
+```yaml
+name: Continuous Integration
+
+on:
+  workflow_dispatch:
+  pull_request:
+  merge_group:
+
+permissions:
+  checks: write
+  contents: write
+
+jobs:
+  test-lint-backend:
+    name: Test and Lint Django Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "mca"
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mca_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup Environment Variables
+        run: |
+          touch .env
+          echo ENVIRONMENT=ci >> .env
+          echo DATABASE_USER=${DATABASE_USERNAME} >> .env
+          echo DATABASE_PASSWORD=${DATABASE_PASSWORD} >> .env
+          echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
+          echo EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} >> .env
+          cat .env
+        env:
+          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+          cache: "pip"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pylint
+      - name: Run Python Linter (Pylint)
+        run: pylint .
+      - name: Run Python Tests for MCA Web
+        run: python manage.py test mca_web.tests --no-input
+      - name: Run Python Tests for MCA
+        run: python manage.py test mca.tests --no-input
+
+  test-lint-lib:
+    name: Test and Lint Flutter Library
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "mca-lib"
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get 
+          flutter pub upgrade
+      - name: Run Flutter Static Code Analysis
+        run: flutter analyze
+      - name: Run Flutter Unit Tests
+        run: flutter test test
+
+  test-lint-web:
+    name: Test and Lint Web App
+    runs-on: ubuntu-latest
+    needs: test-lint-lib
+    defaults:
+      run:
+        working-directory: "mca-web"
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Enable Web
+        run: flutter config --enable-web
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get 
+          flutter pub upgrade
+      - name: Run Flutter Linter
+        run: flutter analyze
+      - name: Run Flutter Unit and Widget Tests
+        run: flutter test test
+      - name: Start Chromedriver for Integration Tests
+        run: chromedriver --port=4444 &
+      - name: Run Flutter Integration Tests
+        run: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --headless
+
+  test-lint-app:
+    name: Test and Lint iOS and Android App
+    runs-on: ubuntu-latest
+    needs: test-lint-lib
+    defaults:
+      run:
+        working-directory: "mca-app"
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Enable iOS
+        run: flutter config --enable-ios
+      - name: Enable Android
+        run: flutter config --enable-android
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get 
+          flutter pub upgrade
+      - name: Run Flutter Linter
+        run: flutter analyze
+      - name: Run Flutter Unit and Widget Tests
+        run: flutter test test
+
+  validate-pr:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+    needs: [test-lint-backend, test-lint-lib, test-lint-web, test-lint-app]
+    if: always()
+    steps:
+      - name: Check if all dependencies passed
+        run: |
+          if [[ "${{ needs.test-lint-backend.result }}" != "success" || \
+                "${{ needs.test-lint-lib.result }}" != "success" || \
+                "${{ needs.test-lint-web.result }}" != "success" || \
+                "${{ needs.test-lint-app.result }}" != "success" ]]; then
+            echo "One or more dependent jobs failed."
+            exit 1
+          else
+            echo "All dependent jobs passed successfully."
+          fi
+        if: always()
+```
+
+#### Example 2
+
+> [!CAUTION]
+> This second example of MarineConservationApp's CI from last year did use up a significant proportion of the budget allocated to the organisation's GitHub Actions. This is only meant to serve as an example and should definitely be tweaked if to be used this year.
+
+```yaml
+name: Continuous Integration - Full Suite
+
+on:
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  contents: write
+
+jobs:
+  test-lint-backend:
+    name: Test and Lint Django Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "mca"
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mca_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup Environment Variables
+        run: |
+          touch .env
+          echo ENVIRONMENT=ci >> .env
+          echo DATABASE_USER=${DATABASE_USERNAME} >> .env
+          echo DATABASE_PASSWORD=${DATABASE_PASSWORD} >> .env
+          echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
+          echo EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} >> .env
+          cat .env
+        env:
+          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+          cache: "pip"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pylint
+      - name: Run Python Linter (Pylint)
+        run: pylint .
+      - name: Run Python Tests for MCA Web
+        run: python manage.py test mca_web.tests --no-input
+      - name: Run Python Tests for MCA
+        run: python manage.py test mca.tests --no-input
+
+  test-lint-lib:
+    name: Test and Lint Flutter Library
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "mca-lib"
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get
+          flutter pub upgrade
+      - name: Run Flutter Static Code Analysis
+        run: flutter analyze
+      - name: Run Flutter Tests
+        run: flutter test test
+
+  test-lint-web:
+    name: Test and Lint Web App
+    runs-on: ubuntu-latest
+    needs: test-lint-lib
+    defaults:
+      run:
+        working-directory: "mca-web"
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Enable Web
+        run: flutter config --enable-web
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get
+          flutter pub upgrade
+      - name: Run Flutter Linter
+        run: flutter analyze
+      - name: Run Flutter Unit and Widget Tests
+        run: flutter test test
+      - name: Start Chromedriver for Integration Tests
+        run: chromedriver --port=4444 &
+      - name: Run Flutter Integration Tests
+        run: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --headless
+      - name: Build Web App
+        run: flutter build web
+
+  test-lint-ios-app:
+    name: Test and Lint Flutter iOS App
+    runs-on: macos-13
+    needs: test-lint-lib
+    defaults:
+      run:
+        working-directory: "mca-app"
+    strategy:
+      matrix:
+        device:
+          - "iPhone 15"
+      fail-fast: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Enable iOS
+        run: flutter config --enable-ios
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get
+          flutter pub upgrade
+      - name: Run Flutter Static Code Analysis
+        run: flutter analyze
+      - name: Run Flutter Unit and Widget Tests
+        run: flutter test test
+      - name: Run Flutter Integration Tests on ${{ matrix.device }}
+        run: |
+          xcrun simctl boot "${{ matrix.device }}"
+          flutter test integration_test -d "${{ matrix.device }}"
+      - name: Build Flutter App
+        run: flutter build ios --no-codesign
+
+  test-lint-android-app:
+    name: Test and Lint Flutter Android App
+    runs-on: ubuntu-latest
+    needs: test-lint-lib
+    defaults:
+      run:
+        working-directory: "mca-app"
+    strategy:
+      matrix:
+        api-level:
+          - "34"
+        device:
+          - "pixel_6_pro"
+      fail-fast: true
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Print Flutter Version
+        run: flutter --version
+      - name: Enable Android
+        run: flutter config --enable-android
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get 
+          flutter pub upgrade
+      - name: Run Flutter Static Code Analysis
+        run: flutter analyze
+      - name: Run Flutter Unit and Widget Tests
+        run: flutter test test
+      - name: Run Flutter Integration Tests on ${{ matrix.device }} using API Level ${{ matrix.api-level }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          profile: ${{ matrix.device}}
+          script: flutter test integration_test
+          working-directory: ./mca-app
+      - name: Build Flutter App
+        run: flutter build apk --debug
+
+  validate-pr:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+    needs:
+      [
+        test-lint-backend,
+        test-lint-lib,
+        test-lint-web,
+        test-lint-ios-app,
+        test-lint-android-app,
+      ]
+    if: always()
+    steps:
+      - name: Check if all dependencies passed
+        run: |
+          if [[ "${{ needs.test-lint-backend.result }}" != "success" || \
+                "${{ needs.test-lint-lib.result }}" != "success" || \
+                "${{ needs.test-lint-web.result }}" != "success" || \
+                "${{ needs.test-lint-ios-app.result }}" != "success" || \
+                "${{ needs.test-lint-android-app.result }}" != "success" ]]; then
+            echo "One or more dependent jobs failed."
+            exit 1
+          else
+            echo "All dependent jobs passed successfully."
+          fi
+        if: always()
+```
 
 ## Continuous Deployment
 
