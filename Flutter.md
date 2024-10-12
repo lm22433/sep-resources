@@ -209,8 +209,8 @@ Future<void> main() => integrationDriver();
 
 5. In order to run the integration test's locally, you can use the following command: `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome`
 
-   > [!NOTE]
-   > You will need to have chrome installed in order to run this test.
+> [!NOTE]
+> You will need to have chrome installed in order to run this test.
 
 6. In order to add this to your CI pipeline, the integration tests will need to be run as headless tests. To do this, you will need to install chromedriver and ensure it is running the background. This can be done with the following workflow step
 
