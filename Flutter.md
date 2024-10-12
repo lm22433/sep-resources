@@ -90,7 +90,7 @@ linter:
 
 #### Adding Linting to CI Workflows
 
-To include linting as part of your CI pipeline, simply add a step to your workflow to run static analysis. You can use flutter analyze in your CI workflow definition. For instance, we can continue to build on the example above,
+To include linting as part of your CI pipeline, simply add a step to your workflow to run static analysis. You can use `flutter analyze` in your CI workflow definition. For instance, we can continue to build on the example above,
 
 ```yaml
 name: Continuous Integration - Flutter
@@ -193,11 +193,48 @@ Unit and Widget tests can be setup in a very similar way to a Flutter library an
 
 Integration tests validate the app as a whole, testing its behavior in a browser to ensure that different components interact correctly. These tests simulate user actions in a real web environment.
 
-To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behavior across multiple screens.
+To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behavior across multiple screens. You can view the Flutter documentation for more information on intergration testing.
+
+1. To add the `integration test` and `flutter_test` packages as dev dependencies you can use the following command: `flutter pub add 'dev:integration_test:{"sdk":"flutter"}'`
+2. Next, create the directory `integration_test` in the root directory of the project. You will also need to create a `test_driver` directory in the root directory.
+3. Within the `test_driver` directory, create a file called `integration_test.dart` and add the following dart code:
+
+```dart
+import 'package:integration_test/integration_test_driver.dart';
+
+Future<void> main() => integrationDriver();
+```
+
+4. You can now add integration tests within the `integration_test` directory. Examples of integration tests can be found in 2023-MarineConservationApp's `integration_test` directory.
+
+5. In order to run the integration test's locally, you can use the following command: `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome`
+
+   > [!NOTE]
+   > You will need to have chrome installed in order to run this test.
+
+6. In order to add this to your CI pipeline, the integration tests will need to be run as headless tests. To do this, you will need to install chromedriver and ensure it is running the background. This can be done with the following workflow step
+
+```yaml
+steps:
+  ...
+  - name: Start Chromedriver
+    run: chromedriver --port=4444 &
+```
+
+7. After that step has been added, you can now execute `flutter drive` in a headless environment by add the following step.
+
+```yaml
+steps:
+  ...
+  - name: Start Chromedriver
+    run: chromedriver --port=4444 &
+  - name: Run Flutter Integration Tests
+    run: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --headless
+```
 
 #### 3. **Complete Web Application Workflow**
 
-Putting it all together, we can create something quite comprehensive, here's a slimmed version for [2023-MarineConservationApp's](https://github.com/spe-uob/2023-MarineConservationApp/blob/dev/.github/workflows/ci.yml) CI workflow.
+Putting it all together, we can create something quite comprehensive, here's a slimmed version of [2023-MarineConservationApp's](https://github.com/spe-uob/2023-MarineConservationApp/blob/dev/.github/workflows/ci.yml) CI workflow.
 
 ```yaml
 test-lint-web:
