@@ -195,7 +195,38 @@ Integration tests validate the app as a whole, testing its behavior in a browser
 
 To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behavior across multiple screens.
 
-#### 3. **GitHub Actions Workflow**
+#### 3. **Complete Web Application Workflow**
+
+Putting it all together, we can create something quite comprehensive, here's a slimmed version for [2023-MarineConservationApp's](https://github.com/spe-uob/2023-MarineConservationApp/blob/dev/.github/workflows/ci.yml) CI workflow.
+
+```yaml
+test-lint-web:
+  name: Test and Lint Web App
+  runs-on: ubuntu-latest
+  defaults:
+    run:
+      working-directory: "mca-web"
+  steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+    - name: Setup and Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: "stable"
+        cache: true
+    - name: Enable Web
+      run: flutter config --enable-web
+    - name: Install Flutter Dependencies
+      run: flutter pub get
+    - name: Run Flutter Linter
+      run: flutter analyze
+    - name: Run Flutter Unit and Widget Tests
+      run: flutter test test
+    - name: Start Chromedriver for Integration Tests
+      run: chromedriver --port=4444 &
+    - name: Run Flutter Integration Tests
+      run: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d web-server --headless
+```
 
 ### Flutter Android and iOS Applications
 
