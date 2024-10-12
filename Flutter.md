@@ -73,7 +73,7 @@ Linting is the process of analyzing your code for potential errors, style issues
 
 #### Configuring Lint Rules
 
-You can configure linting rules in an `analysis_options.yaml` file. This file should be in the project's root directory. (Along with `pupbspec.yaml`) Within this file, all linting rules can be configured.
+You can configure linting rules in an `analysis_options.yaml` file. This file should be in the project's root directory. (Along with `pupbspec.yaml`) Within this file, all linting rules can be configured. In order to run static analysis, we recommend using Flutter's CLI command, `flutter analyze`. This can be run both locally and as a step within your CI pipeline.
 
 Here’s an example of an `analysis_options.yaml` file:
 
@@ -86,7 +86,36 @@ linter:
 ```
 
 > [!NOTE]
-> For more information linter rules, you can view the [`flutter_lints` documentation](https://docs.flutter.dev/release/breaking-changes/flutter-lints-package).
+> For more information on configuring linter rules, you can view the [`flutter_lints` documentation](https://docs.flutter.dev/release/breaking-changes/flutter-lints-package).
+
+#### Adding Linting to CI Workflows
+
+To include linting as part of your CI pipeline, simply add a step to your workflow to run static analysis. You can use flutter analyze in your CI workflow definition. For instance, we can continue to build on the example above,
+
+```yaml
+name: Continuous Integration - Flutter
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  test:
+    runs-on: ubuntu-linux
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup and Install Flutter
+        uses: subosito/flutter-action@v2
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+      - name: Run Static Code Analysis
+        run: flutter analyze
+      - name: Run Flutter Tests
+        run: flutter test
+```
 
 ### Flutter Packages
 
