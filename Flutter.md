@@ -4,7 +4,6 @@
 
 - [Introduction](#introduction)
 - [Continuous Integration](#continuous-integration)
-  - [Prerequisites](#prerequisites)
   - [Getting Started](#getting-started)
   - [Linting](#linting)
   - [Flutter Packages](#flutter-packages)
@@ -12,22 +11,12 @@
   - [Flutter Android and iOS Applications](#flutter-android-and-ios-applications)
   - [Tips and Tricks](#tips-and-tricks)
   - [Examples](#examples)
-- [Continuous Deployment](#continuous-deployment)
 
 ## Introduction
 
 Continuous Integration and Continuous Deployment (CI/CD) automate the processes of testing, building, and deploying applications. GitHub Actions allows developers to set up CI/CD pipelines directly in GitHub repositories, making it an efficient and accessible development tool. In this guide, we will set up a CI/CD pipeline for various different types of Flutter projects.
 
 ## Continuous Integration
-
-### Prerequisites
-
-Before setting up CI for a Flutter project, ensure the following are in place:
-
-- A [GitHub](https://github.com/) repository containing your Flutter project.
-- Basic understanding of YAML (used for writing GitHub Actions workflows).
-- Flutter SDK installed locally for development and testing.
-- Basic familiarity with the Fluter CLI.
 
 ### Getting Started
 
@@ -275,7 +264,103 @@ test-lint-web:
 
 ### Flutter Android and iOS Applications
 
+We have already explored how to write unit and integration tests in the previous sections. Setting up unit tests in GitHub Actions can be done similarly to how they have been done in previous sections, as they don’t rely on platform-specific configurations. However, when it comes to running integration tests, they pose a bit more of a challenge.
+
+Integration tests typically need to run on actual devices or emulators. This means that you need to set up emulators or simulators, handle device boot-up, and ensure that tests run smoothly across both Android and iOS platforms. This is where configuration becomes a bit more complex, especially in a CI/CD environment like GitHub Actions.
+
+To handle these challenges, we need to configure Android emulators and iOS simulators in the CI pipeline, making sure the required dependencies are installed and the emulators are properly booted before executing the integration tests.
+
+#### iOS
+
+Running iOS integration tests in GitHub Actions is more complex compared to Android due to platform restrictions. Since iOS apps need to be run and tested on a macOS environment, GitHub Actions uses macOS runners to facilitate this.
+
+**Key steps:**
+
+1. Use macOS runner: To run iOS tests, the job must be executed on macos-latest.
+
+2. Boot iOS Simulator: The iOS simulator is booted using Xcode’s xcrun command, which controls and manages available simulators.
+
+3. Run integration tests: The integration tests are run using the flutter drive command, targeting the iOS simulator.
+
+> [!CAUTION]
+> MacOS GitHub runners are billed at 10x the rate of an Ubunutu GitHub runner. Please be careful when setting up CI for your iOS apps.
+
+**Example iOS Workflow for Github Actions**
+
+```yaml
+ios-test:
+  runs-on: macos-latest
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    - name: Setup and Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: "stable"
+        cache: true
+    - name: Enable iOS
+      run: flutter config --enable-ios
+    - name: Install Flutter Dependencies
+      run: flutter pub get
+    - name: Run Flutter Static Code Analysis
+      run: flutter analyze
+    - name: Run Flutter Unit and Widget Tests
+      run: flutter test test
+    - name: Run Flutter Integration Tests
+      run: |
+        xcrun simctl boot "iPhone 16"
+        flutter test integration_test -d "iPhone 16"
+    - name: Build Flutter App
+      run: flutter build ios --no-codesign
+```
+
+#### Android
+
+Running Android integration tests in GitHub Actions is somewhat easier than iOS, as Android development tools are better supported in CI environments. You will need to install the Android SDK, set up an Android emulator, and ensure that the tests are run using Flutter's test framework.
+
+**Key Steps:**
+
+3. Install Flutter and dependencies: Set up Flutter and install the necessary dependencies using flutter pub get.
+
+4. Launch Android Emulator: Use the reactivecircus/android-emulator-runner action to start and boot an Android emulator.
+
+5. Run integration tests: Once the emulator is booted, run the integration tests using the flutter test command.
+
+**Example Android Workflow for GitHub Actions:**
+
+```yaml
+android-test:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    - name: Setup and Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: "stable"
+        cache: true
+    - name: Enable Android
+      run: flutter config --enable-android
+    - name: Install Flutter Dependencies
+      run: flutter pub get
+    - name: Run Flutter Static Code Analysis
+      run: flutter analyze
+    - name: Run Flutter Unit and Widget Tests
+      run: flutter test test
+    - name: Run Flutter Integration Tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 34
+        arch: x86_64
+        profile: pixel_6_pro
+        script: flutter test integration_test
+    - name: Build Flutter App
+      run: flutter build apk --debug
+```
+
 ### Tips and Tricks
+
+**Optimising Workflows**
 
 As a repository within the Software Engineering Project GitHub Enterprise organization, you're allocated a specific number of GitHub runner minutes per month. To optimise usage and keep execution times fast, here are a few tips:
 
@@ -310,6 +395,8 @@ As a repository within the Software Engineering Project GitHub Enterprise organi
        runs-on: ubuntu-latest # Change this value
    ```
 
+**Secrets and Environment Variables**
+
 When handling sensitive information such as API keys, Firebase tokens, or other credentials, store these as GitHub Secrets. You can configure secrets in your repository by navigating to Settings > Secrets. Then, reference these secrets in the workflow file as follows:
 
 You can also use environment variables to manage values shared across steps. Define them under env and reference them directly within steps:
@@ -323,6 +410,43 @@ steps:
     uses: subosito/flutter-action@v2
     with:
       channel: ${{ env.FLUTTER_CHANNEL }}
+```
+
+**Matrix Jobs**
+
+Matrix jobs allow you to test your application across different versions, environments, or configurations in parallel. This is especially useful when you want to verify compatibility with different Android/iOS versions and devices. You can define a matrix of environments that will run in parallel, saving time and ensuring broader test coverage.
+
+For example, you can configure matrix jobs to test across multiple Android API levels to ensure your app runs well on different versions of Android:
+
+```yaml
+android-test:
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      api-level:
+        - "34"
+        - "35"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    - name: Setup and Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: "stable"
+        cache: true
+    - name: Enable Android
+      run: flutter config --enable-android
+    - name: Install Flutter Dependencies
+      run: flutter pub get
+    - name: Run Flutter Integration Tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ matrix.api-level }}
+        arch: x86_64
+        profile: pixel_6_pro
+        script: flutter test integration_test
+    - name: Build Flutter App
+      run: flutter build apk --debug
 ```
 
 ### Examples
@@ -751,7 +875,3 @@ jobs:
           fi
         if: always()
 ```
-
-## Continuous Deployment
-
-TODO
