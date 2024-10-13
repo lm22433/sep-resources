@@ -14,7 +14,7 @@
 
 ## Introduction
 
-Continuous Integration and Continuous Deployment (CI/CD) automate the processes of testing, building, and deploying applications. GitHub Actions allows developers to set up CI/CD pipelines directly in GitHub repositories, making it an efficient and accessible development tool. In this guide, we will set up a CI/CD pipeline for various different types of Flutter projects.
+Continuous Integration and Continuous Deployment (CI/CD) automate the processes of testing, building, and deploying applications. GitHub Actions allows developers to set up CI/CD pipelines directly in GitHub repositories, making it an efficient and accessible development tool. In this guide, we will set up a CI/CD pipeline for various Flutter projects.
 
 ## Continuous Integration
 
@@ -22,9 +22,9 @@ Continuous Integration and Continuous Deployment (CI/CD) automate the processes 
 
 1. In your project's root folder, navigate to the `.github/workflows/` directory. If it doesn't exist, create it. To do this you can use your favourite file explorer or use the `mkdir` command.
 
-2. Inside this folder, you will want to create a new YAML file. Some common file names include: `flutter.yml`, `ci.yml`, and `continuous-integration.yml`. This file will define the GitHub workflow that will serve as your CI/CD pipeline. You can take a look at the [GitHub documentation](https://docs.github.com/en/actions/writing-workflows) on workflows for more information.
+2. Inside this folder, you will want to create a new YAML file. Some common file names include: `flutter.yml`, `ci.yml`, and `continuous-integration.yml`. This file will define the GitHub workflow serving as your CI/CD pipeline. You can look at the [GitHub documentation](https://docs.github.com/en/actions/writing-workflows) on workflows for more information.
 
-3. Now that we have successfully create a file in the correct location, we can begin actually defining our workflow. Here is a very basic example to get stated:
+3. Now that we have successfully created a file in the correct location, we can begin defining our workflow. Here is a very basic example to get stated:
 
 ```yaml
 name: Continuous Integration - Flutter
@@ -49,7 +49,7 @@ jobs:
         run: flutter test
 ```
 
-This YAML file defines a simple GitHub Actions workflow for Continuous Integration (CI) in a Flutter project. The workflow is triggered when a **pull request** is opened or updated on the `main` or `dev` branches of the repository. It defines a single job that will run on an `ubuntu-linux` GitHub runner instance. This jobs has multiple steps that will checkout the repository, install Flutter, install your project's dependecies and then run Flutter's test framework. These are done sequentially.
+This YAML file defines a simple GitHub Actions workflow for Continuous Integration (CI) in a Flutter project. The workflow is triggered when a **pull request** is opened or updated on the `main` or `dev` branches of the repository. It defines a single job that will run on an `ubuntu-linux` GitHub runner instance. This job has multiple steps that will checkout the repository, install Flutter, install your project's dependencies and then run Flutter's test framework. These are done sequentially.
 
 > [!WARNING]
 > In many cases, repositories may be monolithic, meaning they contain multiple projects or services (e.g., backend, frontend, mobile apps) in different directories. If your Flutter project is not located in the root directory of the repository, you will need to specify the working directory in the relevant steps. This can be done by specifying the `working-directory` option within the job scope. For example:
@@ -70,7 +70,7 @@ Linting is the process of analyzing your code for potential errors, style issues
 
 #### Configuring Lint Rules
 
-You can configure linting rules in an `analysis_options.yaml` file. This file should be in the project's root directory. (Along with `pupbspec.yaml`) Within this file, all linting rules can be configured. In order to run static analysis, we recommend using Flutter's CLI command, `flutter analyze`. This can be run both locally and as a step within your CI pipeline.
+You can configure linting rules in an `analysis_options.yaml` file. This file should be in the project's root directory. (Along with `pubspec.yaml`) Within this file, all linting rules can be configured. To run static analysis, we recommend using Flutter's CLI command, `flutter analyze`. This can be run both locally and as a step within your CI pipeline.
 
 Here’s an example of an `analysis_options.yaml` file:
 
@@ -141,7 +141,7 @@ void main() {
   test('Simple math test', () {
     int result = 2 + 2;
     expect(result, 4);
-  });
+ });
 }
 ```
 
@@ -155,16 +155,16 @@ void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(title: Text('Counter App')),
-          body: Center(child: Text('0', key: Key('counter'))),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {},
-            child: Icon(Icons.add),
-          ),
-        ),
-      ),
-    );
+ home: Scaffold(
+ appBar: AppBar(title: Text('Counter App')),
+ body: Center(child: Text('0', key: Key('counter'))),
+ floatingActionButton: FloatingActionButton(
+ onPressed: () {},
+ child: Icon(Icons.add),
+ ),
+ ),
+ ),
+ );
 
     expect(find.text('0'), findsOneWidget);
 
@@ -172,11 +172,11 @@ void main() {
     await tester.pump();
 
     expect(find.text('1'), findsOneWidget);
-  });
+ });
 }
 ```
 
-In order to run these tests in CI, we can use the same workflow definition from above.
+To run these tests in CI, we can use the same workflow definition from above.
 
 ### Flutter Web Applications
 
@@ -184,13 +184,13 @@ When setting up Continuous Integration (CI) for Flutter web applications, you ty
 
 #### 1. **Unit and Widget Tests**
 
-Unit and Widget tests can be setup in a very similar way to a Flutter library and so we can use the examples above.
+Unit and Widget tests can be set up in a very similar way to a Flutter library so we can use the examples above.
 
 #### 2. **Integration Tests**
 
-Integration tests validate the app as a whole, testing its behavior in a browser to ensure that different components interact correctly. These tests simulate user actions in a real web environment.
+Integration tests validate the app as a whole, testing its behaviour in a browser to ensure that different components interact correctly. These tests simulate user actions in a real web environment.
 
-To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behavior across multiple screens. You can view the Flutter documentation for more information on intergration testing.
+To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behaviour across multiple screens. You can view the Flutter documentation for more information on integration testing.
 
 1. To add the `integration test` and `flutter_test` packages as dev dependencies you can use the following command: `flutter pub add 'dev:integration_test:{"sdk":"flutter"}'`
 2. Next, create the directory `integration_test` in the root directory of the project. You will also need to create a `test_driver` directory in the root directory.
@@ -204,12 +204,12 @@ Future<void> main() => integrationDriver();
 
 4. You can now add integration tests within the `integration_test` directory. Examples of integration tests can be found in 2023-MarineConservationApp's `integration_test` directory.
 
-5. In order to run the integration test's locally, you can use the following command: `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome`
+5. To run the integration tests locally, you can use the following command: `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome`
 
 > [!NOTE]
-> You will need to have Chrome installed in order to run this test.
+> You will need to have Chrome installed to run this test.
 
-6. In order to add this to your CI pipeline, the integration tests will need to be run as headless tests. To do this, you will need to install Chromedriver and ensure it is running in the background. The `ubuntu-latest` GitHub Runner has Chromedriver preinstalled, therefore it's as simple as starting Chromedriver in the background:
+6. To add this to your CI pipeline, the integration tests will need to be run as headless tests. To do this, you will need to install Chromedriver and ensure it is running in the background. The `ubuntu-latest` GitHub Runner has Chromedriver preinstalled, therefore it's as simple as starting Chromedriver in the background:
 
 ```yaml
 steps:
@@ -308,8 +308,8 @@ ios-test:
       run: flutter test test
     - name: Run Flutter Integration Tests
       run: |
-        xcrun simctl boot "iPhone 16"
-        flutter test integration_test -d "iPhone 16"
+ xcrun simctl boot "iPhone 16"
+ flutter test integration_test -d "iPhone 16"
     - name: Build Flutter App
       run: flutter build ios --no-codesign
 ```
@@ -384,22 +384,22 @@ As a repository within the Software Engineering Project GitHub Enterprise organi
 4. **Choosing the Right Runner (macOS, Linux, Windows):** GitHub Actions provides three types of virtual environments (or "runners") for executing workflows: macOS, Linux, and Windows. It's important to choose the right runner for your needs, as it affects performance and costs.
 
    - **Linux Runners (`ubuntu-latest`):** Linux is generally the fastest and most cost-effective option. It’s well-suited for most Flutter CI/CD pipelines, especially for testing and building web or Android applications.
-   - **macOS Runners (`macos-latest`):** macOS runners are required for building and testing iOS applications due to Xcode dependencies. However, macOS runners are billed at a significantly higher rate compared to Linux runners. macOS runners consume 10 times the compute minutes compared to Linux runners, so they can quickly deplete your allocated minutes if not managed carefully. Use macOS runners only when absolutely necessary (e.g., for iOS builds).
+   - **macOS Runners (`macos-latest`):** macOS runners are required for building and testing iOS applications due to Xcode dependencies. However, macOS runners are billed at a significantly higher rate compared to Linux runners. macOS runners consume 10 times the compute minutes compared to Linux runners, so they can quickly deplete your allocated minutes if not managed carefully. Use macOS runners only when necessary (e.g., for iOS builds).
    - **Windows Runners (`windows-latest`):** Windows runners are necessary if you need to test or build applications in a Windows-specific environment. In most cases for Flutter development, Windows runners are less commonly needed, but they could be used for testing Windows desktop applications. Like macOS, Windows runners consume more compute minutes than Linux but are cheaper than macOS (around 2x the minutes consumed compared to Linux).
 
-   You can specify the type of runner changing the `runs-on` value:
+You can specify the type of runner changing the `runs-on` value:
 
-   ```yaml
-   jobs:
-     test:
-       runs-on: ubuntu-latest # Change this value
-   ```
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest # Change this value
+```
 
 **Secrets and Environment Variables**
 
 When handling sensitive information such as API keys, Firebase tokens, or other credentials, store these as GitHub Secrets. You can configure secrets in your repository by navigating to Settings > Secrets. Then, reference these secrets in the workflow file as follows:
 
-You can also use environment variables to manage values shared across steps. Define them under env and reference them directly within steps:
+You can also use environment variables to manage values shared across steps. Define them under env and reference them directly within the steps:
 
 ```yaml
 env:
@@ -489,13 +489,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Environment Variables
         run: |
-          touch .env
-          echo ENVIRONMENT=ci >> .env
-          echo DATABASE_USER=${DATABASE_USERNAME} >> .env
-          echo DATABASE_PASSWORD=${DATABASE_PASSWORD} >> .env
-          echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
-          echo EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} >> .env
-          cat .env
+ touch .env
+ echo ENVIRONMENT=ci >> .env
+ echo DATABASE_USER=${DATABASE_USERNAME} >> .env
+ echo DATABASE_PASSWORD=${DATABASE_PASSWORD} >> .env
+ echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
+ echo EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} >> .env
+ cat .env
         env:
           DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
@@ -508,9 +508,9 @@ jobs:
           cache: "pip"
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pylint
+ python -m pip install --upgrade pip
+ pip install -r requirements.txt
+ pip install pylint
       - name: Run Python Linter (Pylint)
         run: pylint .
       - name: Run Python Tests for MCA Web
@@ -538,8 +538,8 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get 
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Static Code Analysis
         run: flutter analyze
       - name: Run Flutter Unit Tests
@@ -568,8 +568,8 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get 
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Linter
         run: flutter analyze
       - name: Run Flutter Unit and Widget Tests
@@ -604,8 +604,8 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get 
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Linter
         run: flutter analyze
       - name: Run Flutter Unit and Widget Tests
@@ -619,22 +619,22 @@ jobs:
     steps:
       - name: Check if all dependencies passed
         run: |
-          if [[ "${{ needs.test-lint-backend.result }}" != "success" || \
-                "${{ needs.test-lint-lib.result }}" != "success" || \
-                "${{ needs.test-lint-web.result }}" != "success" || \
-                "${{ needs.test-lint-app.result }}" != "success" ]]; then
-            echo "One or more dependent jobs failed."
-            exit 1
-          else
-            echo "All dependent jobs passed successfully."
-          fi
+ if [[ "${{ needs.test-lint-backend.result }}" != "success" || \
+ "${{ needs.test-lint-lib.result }}" != "success" || \
+ "${{ needs.test-lint-web.result }}" != "success" || \
+ "${{ needs.test-lint-app.result }}" != "success" ]]; then
+ echo "One or more dependent jobs failed."
+ exit 1
+ else
+ echo "All dependent jobs passed successfully."
+ fi
         if: always()
 ```
 
 #### Example 2
 
 > [!CAUTION]
-> This second example of MarineConservationApp's CI from last year did use up a significant proportion of the budget allocated to the organisation's GitHub Actions. This is only meant to serve as an example and should definitely be tweaked if to be used this year.
+> This second example of MarineConservationApp's CI from last year did use up a significant proportion of the budget allocated to the organisation's GitHub Actions. This is only meant to serve as an example and should be tweaked if to be used this year.
 
 ```yaml
 name: Continuous Integration - Full Suite
@@ -668,13 +668,13 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Environment Variables
         run: |
-          touch .env
-          echo ENVIRONMENT=ci >> .env
-          echo DATABASE_USER=${DATABASE_USERNAME} >> .env
-          echo DATABASE_PASSWORD=${DATABASE_PASSWORD} >> .env
-          echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
-          echo EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} >> .env
-          cat .env
+ touch .env
+ echo ENVIRONMENT=ci >> .env
+ echo DATABASE_USER=${DATABASE_USERNAME} >> .env
+ echo DATABASE_PASSWORD=${DATABASE_PASSWORD} >> .env
+ echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
+ echo EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} >> .env
+ cat .env
         env:
           DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
@@ -687,9 +687,9 @@ jobs:
           cache: "pip"
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pylint
+ python -m pip install --upgrade pip
+ pip install -r requirements.txt
+ pip install pylint
       - name: Run Python Linter (Pylint)
         run: pylint .
       - name: Run Python Tests for MCA Web
@@ -717,8 +717,8 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Static Code Analysis
         run: flutter analyze
       - name: Run Flutter Tests
@@ -747,8 +747,8 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Linter
         run: flutter analyze
       - name: Run Flutter Unit and Widget Tests
@@ -788,16 +788,16 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Static Code Analysis
         run: flutter analyze
       - name: Run Flutter Unit and Widget Tests
         run: flutter test test
       - name: Run Flutter Integration Tests on ${{ matrix.device }}
         run: |
-          xcrun simctl boot "${{ matrix.device }}"
-          flutter test integration_test -d "${{ matrix.device }}"
+ xcrun simctl boot "${{ matrix.device }}"
+ flutter test integration_test -d "${{ matrix.device }}"
       - name: Build Flutter App
         run: flutter build ios --no-codesign
 
@@ -831,8 +831,8 @@ jobs:
         run: flutter doctor -v
       - name: Install Flutter Dependencies
         run: |
-          flutter pub get 
-          flutter pub upgrade
+ flutter pub get
+ flutter pub upgrade
       - name: Run Flutter Static Code Analysis
         run: flutter analyze
       - name: Run Flutter Unit and Widget Tests
@@ -863,15 +863,15 @@ jobs:
     steps:
       - name: Check if all dependencies passed
         run: |
-          if [[ "${{ needs.test-lint-backend.result }}" != "success" || \
-                "${{ needs.test-lint-lib.result }}" != "success" || \
-                "${{ needs.test-lint-web.result }}" != "success" || \
-                "${{ needs.test-lint-ios-app.result }}" != "success" || \
-                "${{ needs.test-lint-android-app.result }}" != "success" ]]; then
-            echo "One or more dependent jobs failed."
-            exit 1
-          else
-            echo "All dependent jobs passed successfully."
-          fi
+ if [[ "${{ needs.test-lint-backend.result }}" != "success" || \
+ "${{ needs.test-lint-lib.result }}" != "success" || \
+ "${{ needs.test-lint-web.result }}" != "success" || \
+ "${{ needs.test-lint-ios-app.result }}" != "success" || \
+ "${{ needs.test-lint-android-app.result }}" != "success" ]]; then
+ echo "One or more dependent jobs failed."
+ exit 1
+ else
+ echo "All dependent jobs passed successfully."
+ fi
         if: always()
 ```
