@@ -178,6 +178,8 @@ void main() {
 
 To run these tests in CI, we can use the same workflow definition from above.
 
+You can view the Flutter documentation on [widget testing](https://docs.flutter.dev/cookbook/testing/widget/introduction) and [unit testing](https://docs.flutter.dev/cookbook/testing/unit/introduction) for more information.
+
 ### Flutter Web Applications
 
 When setting up Continuous Integration (CI) for Flutter web applications, you typically use a combination of unit tests, widget tests, and integration tests to ensure a well-functioning and bug-free web application. Below is an explanation of how to incorporate each type of test, followed by a complete workflow example.
@@ -190,7 +192,7 @@ Unit and Widget tests can be set up in a very similar way to a Flutter library s
 
 Integration tests validate the app as a whole, testing its behaviour in a browser to ensure that different components interact correctly. These tests simulate user actions in a real web environment.
 
-To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behaviour across multiple screens. You can view the Flutter documentation for more information on integration testing.
+To write integration tests for Flutter web applications, you can use the `integration_test` package to test UI and behaviour across multiple screens. You can view the Flutter documentation for more information on [integration testing](https://docs.flutter.dev/testing/integration-tests).
 
 1. To add the `integration test` and `flutter_test` packages as dev dependencies you can use the following command: `flutter pub add 'dev:integration_test:{"sdk":"flutter"}'`
 2. Next, create the directory `integration_test` in the root directory of the project. You will also need to create a `test_driver` directory in the root directory.
@@ -202,7 +204,7 @@ import 'package:integration_test/integration_test_driver.dart';
 Future<void> main() => integrationDriver();
 ```
 
-4. You can now add integration tests within the `integration_test` directory. Examples of integration tests can be found in 2023-MarineConservationApp's `integration_test` directory.
+4. You can now add integration tests within the `integration_test` directory. Examples of integration tests can be found in [2023-MarineConservationApp's](https://github.com/spe-uob/2023-MarineConservationApp/blob/dev/mca-web/integration_test/app_test.dart)`integration_test` directory.
 
 5. To run the integration tests locally, you can use the following command: `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome`
 
@@ -308,8 +310,8 @@ ios-test:
       run: flutter test test
     - name: Run Flutter Integration Tests
       run: |
- xcrun simctl boot "iPhone 16"
- flutter test integration_test -d "iPhone 16"
+        xcrun simctl boot "iPhone 16"
+        flutter test integration_test -d "iPhone 16"
     - name: Build Flutter App
       run: flutter build ios --no-codesign
 ```
@@ -320,11 +322,11 @@ Running Android integration tests in GitHub Actions is somewhat easier than iOS,
 
 **Key Steps:**
 
-3. Install Flutter and dependencies: Set up Flutter and install the necessary dependencies using flutter pub get.
+3. Install Flutter and dependencies: Set up Flutter and install the necessary dependencies using `flutter pub get`.
 
-4. Launch Android Emulator: Use the reactivecircus/android-emulator-runner action to start and boot an Android emulator.
+4. Launch Android Emulator: Use the `reactivecircus/android-emulator-runner` action to start and boot an Android emulator. You can view the [documentation](https://github.com/marketplace/actions/android-emulator-runner) for more infromation on this GitHub Action.
 
-5. Run integration tests: Once the emulator is booted, run the integration tests using the flutter test command.
+5. Run integration tests: Once the emulator is booted, run the integration tests using the `flutter test` command.
 
 **Example Android Workflow for GitHub Actions:**
 
@@ -377,7 +379,7 @@ As a repository within the Software Engineering Project GitHub Enterprise organi
 > [!NOTE]
 > Caching takes up repository storage space, but it helps in reducing the workflow time significantly.
 
-2. **Parallel Jobs:** By defining separate `jobs` under the jobs section, they can be executed in parallel, which speeds up the CI process. Here's an example of splitting build and test jobs:
+2. **Parallel Jobs:** By defining separate `jobs` under the jobs section, they can be executed in parallel, which speeds up the CI process.
 
 3. **Efficient Resource Usage:** Set up automatic checks to ensure unnecessary jobs don't run on certain conditions. For example, skip a job if only documentation files were changed.
 
@@ -399,7 +401,25 @@ jobs:
 
 When handling sensitive information such as API keys, Firebase tokens, or other credentials, store these as GitHub Secrets. You can configure secrets in your repository by navigating to Settings > Secrets. Then, reference these secrets in the workflow file as follows:
 
-You can also use environment variables to manage values shared across steps. Define them under env and reference them directly within the steps:
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+      - name: Install Dependencies
+        run: flutter pub get
+      - name: Use API Key (Secret)
+        run: echo "Using secret API key: ${{ secrets.API_KEY }}"
+```
+
+> [!IMPORTANT]
+> In order to set GitHub Secrets in your repository you will need to contact either a Head TA with Admin access or Sarah.
+
+You can also use environment variables to manage values shared across steps. Define them under `env` and reference them directly within the steps:
 
 ```yaml
 env:
@@ -451,7 +471,7 @@ android-test:
 
 ### Examples
 
-Here are some examples from 2023-MarineConservationApp's project last year. They had a Flutter Package, Flutter Web App, and Android and iOS apps so they had quite a complex pipeline.
+Here are some examples from [2023-MarineConservationApp's](https://github.com/spe-uob/2023-MarineConservationApp/tree/dev/.github/workflows) project last year. They had a Flutter Package, Flutter Web App, and Android and iOS apps so they had quite a complex pipeline.
 
 #### Example 1
 
